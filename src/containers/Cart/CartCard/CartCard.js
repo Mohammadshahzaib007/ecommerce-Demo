@@ -18,36 +18,36 @@ const icons = {
     return (
         <div className={classes.CardContainer}>
             <div className={classes.ImgContainer}>
-                <img className={classes.ProductImg} src={props.img} />
+                <img className={classes.ProductImg} src={props.img} alt="product image"/>
             </div>
             
             <div className={classes.ProductNameContainer}>
-                <Typography variant="h3" component="h2">{props.title}</Typography>
+                <Typography variant="h4" component="h2">{props.title}</Typography>
             </div>
 
             <div className={classes.ProductPriceContainer}>
-    <Typography variant="h3" component="h2">${props.price}</Typography>
+    <Typography style={{fontWeight: 'bold'}} variant="h4" component="h2">${props.price}</Typography>
             </div>
 
             <div className={classes.ProductQuantityContainer}>
-                <IconButton aria-label="delete">
-                    <AddCircleOutlineRoundedIcon style={icons} />
+                <IconButton onClick={props.addQuantityClick} aria-label="delete">
+            <AddCircleOutlineRoundedIcon  style={icons} />
                 </IconButton>
-                <h2>1</h2>
-                <IconButton aria-label="delete">
+                <h2>{props.quantity}</h2>
+                <IconButton onClick={props.subQuantityClick} aria-label="delete">
                     <RemoveCircleOutlineRoundedIcon style={icons} />
                 </IconButton>
             </div>
 
             <div className={classes.ProductRemoveContainer}>
-                <IconButton aria-label="delete">
+                <IconButton onClick={props.removeClick} aria-label="delete">
                     <DeleteIcon style={icons}/>
                 </IconButton>
             </div>
 
-            <div className={classes.ProductTotalContainer}>
-    <Typography variant="h3" component="h2">Item total ${props.price}</Typography>
-            </div>
+            {/* <div className={classes.ProductTotalContainer}>
+    <Typography variant="h4" component="h2">Item total ${props.price}</Typography>
+            </div> */}
         </div>
     );
 }

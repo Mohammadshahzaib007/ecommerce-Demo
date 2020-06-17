@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { connect } from 'react-redux';
-import { fetchData, addToCart } from '../../store/actions/actions';
+import { fetchData, addToCart, } from '../../store/actions/actions';
 
 import Typography from '@material-ui/core/Typography';
 
@@ -19,8 +19,13 @@ const ProductContainer = (props) => {
       }
 
     const product = props.productData.map( productsData => {
-        return <Card click={() => handleClick(productsData.id)} key={productsData.id} img={productsData.image} title={productsData.title}
-        description={productsData.description} price={productsData.price}/>
+        return <Card
+         click={() => handleClick(productsData.id)}
+          key={productsData.id} 
+          img={productsData.image} 
+          title={productsData.title}
+        description={productsData.description} 
+        price={productsData.price}/>
     });
 
     const text = {

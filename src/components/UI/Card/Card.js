@@ -53,7 +53,7 @@ export default function MediaCard(props) {
         </CardContent>
       </CardActionArea>
       <CardActions style={{display: 'flex', justifyContent: 'center'}}>
-        <Button onClick={() => props.click(props.id)} style={btn}  size="small" color="primary">
+        <Button onClick={props.click} style={btn}  size="small" color="primary">
          Add to cart <AddShoppingCartIcon fontSize="large" style={{margin: '.5rem'}}/> 
         </Button>
         
