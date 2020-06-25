@@ -1,6 +1,8 @@
 import React from 'react';
 import Button from '@material-ui/core/Button';
 import { connect } from 'react-redux'
+import { NavLink } from 'react-router-dom';
+
 
 import classes from './BillRecipe.module.css';
 
@@ -11,7 +13,6 @@ const billRecipe = (props) => {
         color: '#3F51B5'
     }
 
-console.log(props.subtotal)
 
     return(
         <div className={classes.BillContainer}>
@@ -20,12 +21,14 @@ console.log(props.subtotal)
             <hr />
     <h3 className={classes.Text}>tax: ${props.tax}</h3>
             <hr />
-           <h3 className={classes.Text}>delevery charge: $6</h3>
+           <h3 className={classes.Text}>Shipping: free</h3>
             <hr />
     <h3 className={classes.Text}>Total: ${props.total}</h3>
+        <NavLink to="/checkout">
             <Button style={btn} variant="outlined" color="primary">
                 Checkout
             </Button>
+        </NavLink>
         </div>
         </div>
     );

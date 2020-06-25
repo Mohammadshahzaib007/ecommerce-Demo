@@ -18,7 +18,7 @@ const icons = {
     return (
         <div className={classes.CardContainer}>
             <div className={classes.ImgContainer}>
-                <img className={classes.ProductImg} src={props.img} alt="product image"/>
+                <img className={classes.ProductImg} src={props.img} alt="product"/>
             </div>
             
             <div className={classes.ProductNameContainer}>
@@ -44,10 +44,6 @@ const icons = {
                     <DeleteIcon style={icons}/>
                 </IconButton>
             </div>
-
-            {/* <div className={classes.ProductTotalContainer}>
-    <Typography variant="h4" component="h2">Item total ${props.price}</Typography>
-            </div> */}
         </div>
     );
 }

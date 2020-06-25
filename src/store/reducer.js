@@ -1,142 +1,230 @@
-import * as actionTypes from './actions/actionTypes';
+import * as actionTypes from "./actions/actionTypes";
+import { auth, firestore } from "../Firebase/Firebase";
 
 const initialState = {
-    productsData: [],
-    addedItems: [],
-    subTotal: 0,
-    error: false,
-    tax: 0,
-    total: 0
-}
+  productsData: [],
+  addedItems: [],
+  subTotal: 0,
+  error: false,
+  tax: 0,
+  total: 0,
+  loading: true,
+  user: null,
+  authError: null,
+  auth: auth,
+  signupError: null,
+  btnLoader: false,
+};
 
+const reducer = (state = initialState, action) => {
+  switch (action.type) {
+    case actionTypes.FETCH_DATA:
+      return {
+        ...state,
+        productsData: action.productsData,
+        error: false,
+        loading: false,
+      };
 
-const reducer = (state = initialState, action ) => {
-    switch(action.type) {
-        case actionTypes.FETCH_DATA:
-            return {
-                ...state,
-                productsData: action.productsData,
-                error: false
-            };
-        
-        case actionTypes.FETCH_DATA_FAILED:
-                return {
-                    ...state,
-                    error: true
-                };
+    case actionTypes.FETCH_DATA_FAILED:
+      return {
+        ...state,
+        error: true,
+      };
 
-        case actionTypes.REMOVE_FROM_CART:
-        const itemToRemove= state.addedItems.find(item=> action.id === item.id)
-        const remainItems = state.addedItems.filter( item => action.id !== item.id );
-       
-        //calculating the total
-        const remainSubTotal = (state.subTotal - itemToRemove.price).toFixed(2) ;
-        const remainTax = (remainSubTotal * (5 / 100)).toFixed(2);
-        // text for every single product
-        const taxPerProduct = (itemToRemove.price  * (5 / 100)).toFixed(2);
+    case actionTypes.REMOVE_FROM_CART:
+      const itemToRemove = state.addedItems.find(
+        (item) => action.id === item.id
+      );
+      const remainItems = state.addedItems.filter(
+        (item) => action.id !== item.id
+      );
 
-        const remainTotal = (state.total - (itemToRemove.price * itemToRemove.quantity ) - taxPerProduct).toFixed(2);
+      //calculating the total
+      const remainSubTotal = (state.subTotal - itemToRemove.price).toFixed(2);
+      const remainTax = (remainSubTotal * (5 / 100)).toFixed(2);
+      // text for every single product
+      const taxPerProduct = (itemToRemove.price * (5 / 100)).toFixed(2);
+
+      const remainTotal = (
+        state.total -
+        itemToRemove.price * itemToRemove.quantity -
+        taxPerProduct
+      ).toFixed(2);
+
+      return {
+        ...state,
+        addedItems: remainItems,
+        subTotal: remainSubTotal,
+        tax: remainTax,
+        total: remainTotal,
+      };
+
+    case actionTypes.ADD_TO_CART:
+      let addedItem = state.productsData.find(
+        (productData) => productData.id === action.id
+      );
+
+      //check if the action id exists in the addedItems
+      let existed_item = state.addedItems.find((item) => action.id === item.id);
+
+      const newSubTotal = state.subTotal + addedItem.price;
+      const calculatedTax = (newSubTotal * (5 / 100)).toFixed(2);
+      const total = newSubTotal + calculatedTax;
+
+      if (existed_item) {
+        addedItem.quantity += 1;
+        return {
+          ...state,
+          subTotal: newSubTotal,
+          tax: calculatedTax,
+          total: total,
+        };
+      } else {
+        addedItem.quantity = 1;
+        //calculat the total
+        let newTotal = state.subTotal + addedItem.price;
+
+        const calculatedtax = ((5 / 100) * newTotal).toFixed(2);
+
+        let Total = (parseInt(newTotal) + parseInt(calculatedTax)).toFixed(2);
 
         return {
-            ...state,
-            addedItems: remainItems,
-            subTotal: remainSubTotal,
-            tax: remainTax,
-            total: remainTotal
-        }
+          ...state,
+          addedItems: [...state.addedItems, addedItem],
+          subTotal: newTotal,
+          tax: calculatedtax,
+          total: Total,
+        };
+      }
 
-        case actionTypes.ADD_TO_CART:
-            let addedItem = state.productsData.find( productData => productData.id === action.id);
-            
-                //check if the action id exists in the addedItems
-            let existed_item = state.addedItems.find( item => action.id === item.id);
+    case actionTypes.ADD_QUANTITY:
+      const itmeToAdd = state.addedItems.findIndex(
+        (item) => item.id === action.id
+      );
 
-            const newSubTotal = (state.subTotal + addedItem.price);
-            const calculatedTax =  (newSubTotal * (5 / 100)).toFixed(2) ;
-            const total = (newSubTotal + calculatedTax);
+      let newArray = [...state.addedItems];
+      newArray[itmeToAdd] = {
+        ...newArray[itmeToAdd],
+        quantity: newArray[itmeToAdd].quantity + 1,
+      };
+      const newSubTotalForQuantity = (
+        parseInt(state.subTotal) + parseInt(newArray[itmeToAdd].price)
+      ).toFixed(2);
+      const newTaxForQuantity = parseInt(
+        (5 / 100) * newSubTotalForQuantity
+      ).toFixed(2);
+      const newTotalForQuantity = (
+        parseInt(newSubTotalForQuantity) + parseInt(newTaxForQuantity)
+      ).toFixed(2);
 
-            if(existed_item) {
-                addedItem.quantity += 1;
-                return {
-                    ...state,
-                    subTotal: newSubTotal,
-                    tax: calculatedTax,
-                    total: total
-                }
-            } else {
-                addedItem.quantity = 1;
-                //calculat the total
-                let newTotal = (state.subTotal + addedItem.price);
+      return {
+        ...state,
+        addedItems: newArray,
+        subTotal: newSubTotalForQuantity,
+        tax: newTaxForQuantity,
+        total: newTotalForQuantity,
+      };
 
-                const calculatedtax = ((5 / 100) * newTotal).toFixed(2);
+    case actionTypes.SUB_QUANTITY:
+      const itmeToSub = state.addedItems.findIndex(
+        (item) => item.id === action.id
+      );
 
-                let Total = (parseInt(newTotal) + parseInt(calculatedTax)).toFixed(2);
+      let newArraySub = [...state.addedItems];
+      newArraySub[itmeToSub] = {
+        ...newArraySub[itmeToSub],
+        quantity: newArraySub[itmeToSub].quantity - 1,
+      };
+      const newSubTotalForSub = (
+        parseInt(state.subTotal) - parseInt(newArraySub[itmeToSub].price)
+      ).toFixed(2);
+      const newTaxForSub = parseInt((5 / 100) * newSubTotalForSub).toFixed(2);
+      const newTotalForSub = (
+        parseInt(newSubTotalForSub) + parseInt(newTaxForSub)
+      ).toFixed(2);
+      if (newArraySub[itmeToSub].quantity >= 1) {
+        return {
+          ...state,
+          addedItems: newArraySub,
+          subTotal: newSubTotalForSub,
+          tax: newTaxForSub,
+          total: newTotalForSub,
+        };
+      } else {
+        const remainItemsSub = state.addedItems.filter(
+          (item) => action.id !== item.id
+        );
+        const removedItem = state.addedItems.find(
+          (item) => item.id === action.id
+        );
+        const newSubTotalSub = (state.subTotal - removedItem.price).toFixed();
+        const newTaxSub = ((5 / 100) * newSubTotalSub).toFixed();
+        const newTotalSub = (
+          parseInt(newSubTotalSub) + parseInt(newTaxSub)
+        ).toFixed();
 
-                return {
-                    ...state,
-                    addedItems: [...state.addedItems, addedItem],
-                    subTotal: newTotal,
-                    tax: calculatedtax,
-                    total: Total
-                    
-                }
-            }
+        return {
+          ...state,
+          addedItems: remainItemsSub,
+          subTotal: newSubTotalSub,
+          tax: newTaxSub,
+          total: newTotalSub,
+        };
+      }
 
-            case actionTypes.ADD_QUANTITY:
-                const itmeToAdd = state.addedItems.findIndex( item => item.id === action.id);
+    case "LOGIN_ERROR":
+      console.log("Login failed");
+      return {
+        ...state,
+        authError: action.error,
+      };
 
-                let newArray = [...state.addedItems];
-                newArray[itmeToAdd] = { ...newArray[itmeToAdd], quantity: newArray[itmeToAdd].quantity + 1 };
-                const newSubTotalForQuantity =  (parseInt(state.subTotal) + parseInt(newArray[itmeToAdd].price)).toFixed(2);
-                const newTaxForQuantity = parseInt((5 / 100) * newSubTotalForQuantity).toFixed(2);
-                const newTotalForQuantity = (parseInt(newSubTotalForQuantity) + parseInt(newTaxForQuantity)).toFixed(2);
+    case "LOGIN_SUCCESS":
+      console.log(" login success");
+      return {
+        ...state,
+        authError: null,
+      };
 
-                return {
-                    ...state,
-                    addedItems: newArray,
-                    subTotal: newSubTotalForQuantity,
-                    tax: newTaxForQuantity,
-                    total: newTotalForQuantity
-                }
+    case actionTypes.SIGNOUT_SUCCESS:
+      console.log(" signOut success");
+      return {
+        ...state,
+      };
 
-            case actionTypes.SUB_QUANTITY:
-            const itmeToSub = state.addedItems.findIndex( item => item.id === action.id);
+    case actionTypes.SIGNOUT_FAILED:
+      console.log(" signOut failed");
+      return {
+        ...state,
+      };
 
-            let newArraySub = [...state.addedItems];
-            newArraySub[itmeToSub] = { ...newArraySub[itmeToSub], quantity: newArraySub[itmeToSub].quantity - 1 };
-            const newSubTotalForSub =  (parseInt(state.subTotal) - parseInt(newArraySub[itmeToSub].price)).toFixed(2);
-            const newTaxForSub = parseInt((5 / 100) * newSubTotalForSub).toFixed(2);
-            const newTotalForSub = (parseInt(newSubTotalForSub) + parseInt(newTaxForSub)).toFixed(2);
-            if(newArraySub[itmeToSub].quantity >= 1) {
-         return {
-                ...state,
-                addedItems: newArraySub,
-                subTotal: newSubTotalForSub,
-                tax: newTaxForSub,
-                total: newTotalForSub
-            }}
-   
-            else {
-                const remainItemsSub = state.addedItems.filter( item => action.id !== item.id );
-                const removedItem = state.addedItems.find( item => item.id === action.id); 
-                const newSubTotalSub = (state.subTotal -    removedItem.price).toFixed();
-                const newTaxSub = (( 5 / 100) * newSubTotalSub).toFixed();
-                const newTotalSub = (parseInt(newSubTotalSub) + parseInt(newTaxSub)).toFixed();
-                
-                return {
-                    ...state,
-                    addedItems: remainItemsSub,
-                    subTotal: newSubTotalSub,
-                    tax: newTaxSub,
-                    total: newTotalSub
-                }
+    case actionTypes.SIGNUP_FAILED:
+      return {
+        ...state,
+        signupError: action.error,
+      };
 
-            }
+    case actionTypes.SIGNUP_SUCCESS:
+      return {
+        ...state,
+        signupError: null,
+      };
 
-        default:
-            return state;
-    }
-    }
+    case actionTypes.SHOW_LOADER:
+      return {
+        ...state,
+        btnLoader: true,
+      };
 
+    case actionTypes.HIDE_LOADER:
+      return {
+        ...state,
+        btnLoader: false,
+      };
+    default:
+      return state;
+  }
+};
 
 export default reducer;

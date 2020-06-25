@@ -8,6 +8,9 @@ import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
 
+import Loader from '../Loader/Loader';
+
+
 import AddShoppingCartIcon from '@material-ui/icons/AddShoppingCart';
 
 const useStyles = makeStyles({
@@ -32,13 +35,13 @@ export default function MediaCard(props) {
   return (
     <Card className={classes.root}>
       <CardActionArea>
-        <CardMedia
+        { props.loadingState === false ?  <CardMedia
         component="img"
           className={classes.media}
           image={props.img}
           width="100%"
           title="Contemplative Reptile"
-        />
+        /> : <Loader /> }
         <CardContent>
           <Typography gutterBottom variant="h5" component="h2">
             {props.title}

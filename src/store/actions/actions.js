@@ -1,6 +1,8 @@
 import * as actionTypes from './actionTypes';
 import axios from 'axios';
 
+import { auth, firestore } from '../../Firebase/Firebase'
+
 
 export const setProduct = (products) => {
     return {
@@ -17,7 +19,7 @@ export const fetchDataFailed = () => {
 
 export const fetchData = () => {
     return dispatch => {
-        axios('https://fakestoreapi.com/products?limit=12')
+        axios('https://fakestoreapi.com/products')
         .then( response => {
             dispatch(setProduct(response.data));
         })
@@ -55,8 +57,49 @@ export const subQuantity = id => {
     }
 }
 
-export const emptyCart = id => {
-    return {
-        type: actionTypes.EMPTY_CART,
+export const createNewUser = (email, password) => {
+    return dispatch => {
+        auth.createUserWithEmailAndPassword( email, password).then( () => {
+             dispatch({ type: actionTypes.SIGNUP_SUCCESS}) 
+        })
+        .catch(error => {
+            dispatch({ type: actionTypes.SIGNUP_FAILED, error: error.message})
+        })
+    }
+}
+
+export const signIn = (email, password) => {
+    showLoader()
+    return dispatch => {
+       auth.signInWithEmailAndPassword(email, password).then( () => {
+           dispatch({ type: 'LOGIN_SUCCESS'});
+           hideLoader()
+       })
+       .catch(error => {
+            dispatch({ type: 'LOGIN_ERROR', error: error.message})
+        })
+    }
+}
+
+export const signOut = () => {
+    return dispatch => {
+        auth.signOut().then( () => {
+            dispatch({ type: actionTypes.SIGNOUT_SUCCESS});
+            console.log(auth.uid);
+        }).catch( error => {
+            dispatch({ type: actionTypes.SIGNOUT_FAILED, error})
+        })
+    }
+}
+
+export const showLoader = () => {
+    return dispatch => {
+        dispatch({type: actionTypes.SHOW_LOADER})
+    }
+}
+
+export const hideLoader = () => {
+    return dispatch => {
+        dispatch({type: actionTypes.HIDE_LOADER})
     }
 }

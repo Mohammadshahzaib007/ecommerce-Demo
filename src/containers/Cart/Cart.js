@@ -11,7 +11,6 @@ import BillRecipe from '../../containers/BillRecipe/BillRecipe';
 import classes from './Cart.module.css';
 
 const Cart = (props) => {
-
     const text = {
         textTransform: 'uppercase',
         color: '#3F51B5',
@@ -32,8 +31,7 @@ const Cart = (props) => {
     const subQuantityHandler = (id) => {
         props.subQuantity(id)
     }
-
-
+    
     let items = props.items.length ? (
         props.items.map(item => {
         return  <CardCart
